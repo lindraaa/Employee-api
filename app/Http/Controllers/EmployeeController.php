@@ -18,7 +18,7 @@ class EmployeeController extends Controller
         if (!$allEmployee->isEmpty()) {
             return $this->customResponse('list of Employees',new EmployeeCollection($allEmployee));
         } else {
-            return $this->customResponse('No available Employees',[],200);
+            return $this->customResponse('No available Employees',[],404);
         }
     }
 

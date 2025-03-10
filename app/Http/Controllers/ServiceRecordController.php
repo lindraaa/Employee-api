@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreServiceRecordRequest;
+use App\Http\Resources\ServiceRecord\ServiceRecordCollection;
+use App\Http\Resources\ServiceRecord\ServiceRecordResource;
 use App\Models\ServiceRecord;
 use Illuminate\Http\Request;
 
@@ -11,19 +13,19 @@ class ServiceRecordController extends Controller
     //
     function get_serviceRecord()
     {
-        $allServiceRecord = ServiceRecord::with(['employee','department'])->get();
+        $allServiceRecord = ServiceRecord::all();
         if (!$allServiceRecord->isEmpty()) {
-            return response()->json($allServiceRecord, 200);
+            return $this->customResponse('list of Service Record',new ServiceRecordCollection($allServiceRecord));
         } else {
-            return response()->json(["message" => "No available Service Record"], 200);
+            return $this->customResponse('No available Service Record',[],404);
         }
     }
     function find_serviceRecord(Request $req){
-        $serviceRecord = ServiceRecord::with(['employee','department'])->find($req->id);
+        $serviceRecord = ServiceRecord::find($req->id);
         if (!$serviceRecord) {
-            return response()->json(["message" => "Service Record not found"], 404);
+            return $this->customResponse("Service Record not found",[],404,false);
         }
-        return response()->json($serviceRecord);
+        return $this->customResponse("Service Found", new ServiceRecordResource($serviceRecord));
 
     }
     function create_serviceRecord(StoreServiceRecordRequest $req)
@@ -31,21 +33,21 @@ class ServiceRecordController extends Controller
         //for data validation
         $validated = $req->validated();
         $serviceRecord = ServiceRecord::create($validated);
-        return response()->json(["message" => "Service created successfully", 
-                                "Added Data:"=>$serviceRecord], 200);
+        return  $this->customResponse("Service Record created successfully",new ServiceRecordResource($serviceRecord));
+
     }
     function update_serviceRecord(StoreServiceRecordRequest $req)
     {
         $serviceRecord = ServiceRecord::find($req->id);
 
         if (!$serviceRecord) {
-            return response()->json(["message" => "Service Record not found"], 404);
+            return $this->customResponse('No available Service Record',[],404);
         }{
             //for data validation
             $validated = $req->validated();
             $serviceRecord->update($validated);
-            return response()->json(["message" => "Service Record Updated Successfully",
-                                    "Updated Data:"=>$serviceRecord], 200);
+            return  $this->customResponse("Service Record Update successfully",new ServiceRecordResource($serviceRecord));
+           
         }
     }
     function delete_serviceRecord(Request $req)
@@ -53,10 +55,10 @@ class ServiceRecordController extends Controller
         $serviceRecord = ServiceRecord::find($req->id);
 
         if (!$serviceRecord) {
-            return response()->json(["message" => "Not existing or deleted already"], 404);
+            return $this->customResponse('Not existing or deleted already',[],404);
         } else {
             $serviceRecord->delete();
-            return response()->json(["message" => "Deleted successfully","Data"=>$serviceRecord], 200);
+            return  $this->customResponse("Deleted successfully",[]);
         }
     }
 }

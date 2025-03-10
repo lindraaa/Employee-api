@@ -35,7 +35,12 @@ class StoreServiceRecordRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(
-            response()->json(['Error' => $validator->errors()],422)
+            response()->json([
+                'code'=>422,
+                'success'=>false,
+                'message'=>"Validation failed",
+                'response' => $validator->errors()
+            ],422)
         );
     }
 }
