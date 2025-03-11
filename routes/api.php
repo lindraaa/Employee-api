@@ -26,7 +26,7 @@ use App\Models\ServiceRecord;
 
 //To Private Routes
 
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['prefix'=>"secure/v1",'middleware' => ['auth:sanctum']], function () {
     Route::post("/logout", [AdminController::class, "logout"]);
     // Route::get("/employee", [EmployeeController::class, "get_employee"]);
 
@@ -52,6 +52,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete("/serviceRecord/{id}", [ServiceRecordController::class, "delete_serviceRecord"]);
 });
 //Public Routes
-Route::post("/onlySecret", [AdminController::class, "adminonly"]);
-Route::post("/adminlogin", [AdminController::class, "login"]);
+Route::group(["prefix"=>"auth/v1"],function(){
+    Route::post("/onlySecret", [AdminController::class, "adminonly"]);
+    Route::post("/adminlogin", [AdminController::class, "login"]);
+});
+
 

@@ -3,45 +3,34 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
 {
     public function adminonly(Request $req){
-        // $fields = $req->validate([
-        //     "name"=>"required|string",
-        //     "email"=>"required|string|unique:users,email",
-        //     'password'=>"required|string"
-        // ]);
-        // $user = User::create([
-        //     "name" => $fields['name'],
-        //     "email"=> $fields['email'],
-        //     "password"=> bcrypt ($fields['password'])
-        // ]);
-        
-        //Default 
-        $name = env("ADMIN_NAME");
-        $email = env("ADMIN_EMAIL");
-        $password = env("ADMIN_PASSWORD");
-        if (!$name || !$email || !$password) {
-            return response()->json([
-                'error' => 'Admin credentials are not set in the .env file.'
-            ], 400); // Return an error if any required env variables are missing
+        try{        
+            $fields = $req->validate([
+                "name"=>"required|string",
+                "email"=>"required|string|email|unique:users,email",
+                'password'=>"required|string"
+            ]);
+            $user = User::create([
+                "name" => $fields['name'],
+                "email"=> $fields['email'],
+                "password"=> bcrypt ($fields['password'])
+            ]);
+
+            $token = $user->createToken("admintoken")->plainTextToken;
+
+            $response = [
+                "user"=>$user,
+                "token"=>$token
+            ];
+            return $this->customResponse('Registered Successfully',$response,);
+        }catch(ValidationException $error){
+            return $this->customResponse('Validation Error',$error->errors(),422,false);
         }
-        $user = User::create([
-            "name" => $name,
-            "email"=> $email,
-            "password"=> bcrypt ($password)
-        ]);
-
-        $token = $user->createToken("admintoken")->plainTextToken;
-
-        $response = [
-            "user"=>$user,
-            "token"=>$token
-        ];
-        return response()->json($response);
     }
 
     public function login(Request $req){
@@ -52,7 +41,7 @@ class AdminController extends Controller
         $user = User::where("email",$fields["email"])->first();
 
         if(!$user ||!hash::check($fields["password"],$user->password)){
-            return response()->json(["message"=>"Invalid Credentials"],401);
+            return $this->customResponse('Invalid Credentials',[],401,false);
         }
         $token = $user->createToken("admintoken")->plainTextToken;
 
@@ -60,13 +49,13 @@ class AdminController extends Controller
             "user"=>$user,
             "token"=>$token
         ];
-        return response()->json($response);
+        return $this->customResponse('login Successfully',$response);
     }
     public function logout(Request $req){
         auth()->user()->tokens->each(function ($token) {
             $token->delete();
         });
-                return response()->json(["message"=>"Logout Successfully"]);
+        return $this->customResponse('logout Successfully');
     }
 }
 // 9|wlXJ7XLLTkIZpoFTNOsl3HLhg8CVBcmI1xSBt3ZP
