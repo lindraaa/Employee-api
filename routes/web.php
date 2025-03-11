@@ -20,7 +20,7 @@ use App\Models\ServiceRecord;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    abort(403);
 });
 
 // //Employee Routes
