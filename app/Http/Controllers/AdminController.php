@@ -34,13 +34,17 @@ class AdminController extends Controller
     }
 
     public function login(Request $req){
-        $fields = $req->validate([
-            "email"=>"required|string|",
-            'password'=>"required|string"
-        ]);
+        try {
+            $fields = $req->validate([
+            "email"    => "required|string",
+            "password" => "required|string"
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+                return $this->customResponse('Validation failed', $e->errors(), 422, false);
+        }
         $user = User::where("email",$fields["email"])->first();
 
-        if(!$user ||!hash::check($fields["password"],$user->password)){
+        if(!$user ||!Hash::check($fields["password"],$user->password)){
             return $this->customResponse('Invalid Credentials',[],401,false);
         }
         $token = $user->createToken("admintoken")->plainTextToken;
